@@ -1,0 +1,328 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -368,
+        -160
+      ],
+      "id": "a8029b45-c3e9-43cb-a242-a1d0682f26b9",
+      "name": "Telegram Trigger",
+      "webhookId": "ed36ca8a-f8c5-477b-b401-4689139cdce5",
+      "credentials": {
+        "telegramApi": {
+          "id": "Z3R4CWDzvyLsYFH9",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "=\nYou are a smart, helpful personal assistant tasked with performing actions.\n\nYou have access to these tools:\n\n- Telegram Message Sender: Send messages via Telegram\n\n- Gmail Tool: Send emails via Gmail\n\n- Calendar Event Setter : Setup events on google calendar\n\n- Fireflies Fetch Meeting Names and Transcript ids - Tool used to fetch meeting names and transcription ids\n\n- Fireflies Transcript Fetcher For a Meeting - tool used to fetch transcript for a given transcript ID from Fireflies.\n\n\nRules you MUST FOLLOW:\n\n1. Analyze the user input to determine which tool(s) to use\n\n2. Always respond back to the user via Telegram Message Sender after completing tasks\n\n3. When sending emails, extract recipient, subject, and message from user input\n\n4. Here is the current time - {{ $now }}, this will be helpful when you need to setup a calendar invite/event\n\n5. Whenever user wants summaries, minutes of the meeting of a meeting, you should first fetch the list of available meetings using the tool 'Fireflies Fetch Meeting Names and Transcript ids', fetch the meeting id of the meeting that user is interested in, and then fetch transcript for that meeting_id by calling the tool 'Fireflies Transcript Fetcher For a Meeting' and then create summaries/minutes of the meeting based on what user requests\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -96,
+        -160
+      ],
+      "id": "cdae4ac6-3686-480c-8973-8f7be369377e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -256,
+        96
+      ],
+      "id": "c5640854-8db6-477c-904e-2e64081cae91",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "IV4ex7m0PKzlBGHQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.message_id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -80,
+        96
+      ],
+      "id": "d702175f-b6d9-4d3f-ad56-fd0c24a27f0b",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Create an event in Google Calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "2228055@kiit.ac.in",
+          "mode": "list",
+          "cachedResultName": "2228055@kiit.ac.in"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        272,
+        96
+      ],
+      "id": "77ae819c-d460-4afe-9e44-d4c338be53ce",
+      "name": "Calendar Event Setter",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "ZF05Z0SQTXCc7Vpn",
+          "name": "Google Calendar OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Send a message in Gmail",
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        128,
+        80
+      ],
+      "id": "658d5f46-1449-40f3-94a0-1421affdd4d7",
+      "name": "Gmail Tool",
+      "webhookId": "3d1130ee-d8cd-4502-9fc3-6b9166663552",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "KaiaBRdg8kKJLXCG",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Send a text message in Telegram",
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Text', ``, 'string') }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegramTool",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        48
+      ],
+      "id": "b03df2bc-3ec0-4142-85b9-2b817d0233ca",
+      "name": "Telegram Message Sender",
+      "webhookId": "c18b5856-6e7a-4aae-a333-e2c2f19d4a32",
+      "credentials": {
+        "telegramApi": {
+          "id": "Z3R4CWDzvyLsYFH9",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Tool used to fetch meeting names and transcription ids",
+        "method": "POST",
+        "url": "https://api.fireflies.ai/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer cecf251b-cfca-4d5c-a621-d747af5157cc"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "query Transcripts { transcripts { title id } }"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        432,
+        80
+      ],
+      "id": "9fec035a-2053-4be2-b94b-3e134882882b",
+      "name": "Fireflies Fetch Meeting Names and Transcript ids"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Tool to fetch meeting transcript for a given transcript id\n",
+        "method": "POST",
+        "url": "https://api.fireflies.ai/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer cecf251b-cfca-4d5c-a621-d747af5157cc"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', ``, 'json') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        592,
+        80
+      ],
+      "id": "86c66e36-0db8-4d5b-bf53-098f9a7830af",
+      "name": "Fireflies Transcript Fetcher For a Meeting"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar Event Setter": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Message Sender": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fireflies Fetch Meeting Names and Transcript ids": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fireflies Transcript Fetcher For a Meeting": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b46e54cd-142a-4d47-b3ce-0ad2659580f9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a2acea927fa144d3e33d2b77b1521fa8fd770b3453dfb5f8ac388c5dfcc845e9"
+  },
+  "nodeGroups": [],
+  "id": "KSKWWF3HpPLOHGng",
+  "tags": []
+}
